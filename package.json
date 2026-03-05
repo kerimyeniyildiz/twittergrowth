@@ -1,0 +1,25 @@
+{
+  "name": "tweetgrowth",
+  "version": "1.0.0",
+  "description": "Tweet curation pipeline: collect, dedup, score, approve via Telegram, post to X",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test": "node --test 'tests/*.test.js'",
+    "dry-run": "DRY_RUN=true node src/index.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.0.0",
+    "grammy": "^1.25.0",
+    "axios": "^1.7.0",
+    "twitter-api-v2": "^1.17.0",
+    "openai": "^4.70.0",
+    "@google/genai": "^1.0.0",
+    "dotenv": "^16.4.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
