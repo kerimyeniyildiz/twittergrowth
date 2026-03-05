@@ -3,7 +3,7 @@ import { processDedup } from './dedup.js';
 import { scoringCascade } from './scorer.js';
 import { sendTweet } from './sender.js';
 import { notifyCandidate, notifyAdmin, setAccountChangeCallback } from './bot.js';
-import { getActiveAccounts, getCandidate, updateCandidate } from './db.js';
+import { getActiveAccounts, getCandidate, updateCandidate, getAccount } from './db.js';
 import { safeJsonParse } from './utils.js';
 
 const timers = new Map(); // username -> intervalId
@@ -14,11 +14,20 @@ const timers = new Map(); // username -> intervalId
  */
 async function runForAccount(username) {
     try {
+        const acc = getAccount(username);
+        if (!acc || !acc.active) return;
+
         // 1. Collect
         const newCandidates = await collectAccount(username);
         if (newCandidates.length === 0) return;
 
         for (const raw of newCandidates) {
+            const latestAcc = getAccount(username);
+            if (!latestAcc || !latestAcc.active) {
+                console.log(`[Pipeline] @${username} paused, stopping current run`);
+                break;
+            }
+
             const candidate = getCandidate(raw.id);
             if (!candidate) continue;
 

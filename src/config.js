@@ -51,6 +51,8 @@ const config = {
 
   // Default poll interval for new accounts (seconds)
   defaultPollInterval: 300,
+  // Max tweets to process per poll per account
+  maxTweetsPerPoll: Number(process.env.MAX_TWEETS_PER_POLL || 10),
 };
 
 export default config;

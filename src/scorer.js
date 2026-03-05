@@ -13,7 +13,7 @@ Puanlama kriterleri:
 - Tartışma yaratma potansiyeli
 
 Yanıtını SADECE şu JSON formatında ver:
-{"score": <0-100>, "reason": "<maksimum 50 kelimelik kısa açıklama>"}`;
+{"score": <0-100>}`;
 
 /**
  * Call GPT-5 Mini for initial scoring.
@@ -29,7 +29,7 @@ async function callGPT5Mini(text) {
         });
         const parsed = parseJsonFromText(responseText);
         if (!parsed) return null;
-        return { score: Math.round(parsed.score), reason: parsed.reason || '' };
+        return { score: Math.round(parsed.score), reason: '' };
     } catch (err) {
         console.error('[Scorer] GPT-5 Mini error:', err.message);
         return null;
@@ -49,7 +49,7 @@ async function callGeminiFlash(text) {
         });
         const parsed = parseJsonFromText(responseText);
         if (!parsed) return null;
-        return { score: Math.round(parsed.score), reason: parsed.reason || '' };
+        return { score: Math.round(parsed.score), reason: '' };
     } catch (err) {
         console.error('[Scorer] Gemini Flash error:', err.message);
         return null;
@@ -69,7 +69,7 @@ async function callGeminiPro(text) {
         });
         const parsed = parseJsonFromText(responseText);
         if (!parsed) return null;
-        return { score: Math.round(parsed.score), reason: parsed.reason || '' };
+        return { score: Math.round(parsed.score), reason: '' };
     } catch (err) {
         console.error('[Scorer] Gemini Pro error:', err.message);
         return null;
@@ -95,16 +95,16 @@ export async function scoringCascade(candidate) {
         return { label: null, action: 'drop', scores: {}, reason: 'scoring-error' };
     }
 
-    updateCandidate(id, { score_5mini: mini.score, score_reason: mini.reason });
+    updateCandidate(id, { score_5mini: mini.score, score_reason: null });
 
     if (mini.score < 70) {
         updateCandidate(id, { status: 'dropped', label: 'dropped' });
-        return { label: 'dropped', action: 'drop', scores: { score_5mini: mini.score }, reason: mini.reason };
+        return { label: 'dropped', action: 'drop', scores: { score_5mini: mini.score }, reason: '' };
     }
 
     if (mini.score < 85) {
         updateCandidate(id, { status: 'scored', label: 'normal' });
-        return { label: 'normal', action: 'suggest', scores: { score_5mini: mini.score }, reason: mini.reason };
+        return { label: 'normal', action: 'suggest', scores: { score_5mini: mini.score }, reason: '' };
     }
 
     // Step 2: Gemini Flash (score_5mini >= 85)
@@ -131,8 +131,7 @@ export async function scoringCascade(candidate) {
         label = 'auto-send adayı';
     }
 
-    const combinedReason = `5mini: ${mini.reason} | flash: ${flash.reason}`;
-    updateCandidate(id, { status: 'scored', label, score_reason: combinedReason });
+    updateCandidate(id, { status: 'scored', label, score_reason: null });
 
     // Step 3: Pro check (only for auto-send candidates)
     const autoEnabled = config.autoSend;
@@ -142,14 +141,14 @@ export async function scoringCascade(candidate) {
     if (autoSendCandidate && autoEnabled && nightOrTrend && mini.score >= 92 && flash.score >= 88) {
         const pro = await callGeminiPro(text);
         if (pro) {
-            updateCandidate(id, { score_pro: pro.score, score_reason: `${combinedReason} | pro: ${pro.reason}` });
+            updateCandidate(id, { score_pro: pro.score, score_reason: null });
 
             if (pro.score >= 90) {
                 return {
                     label: 'auto-send',
                     action: 'auto-send',
                     scores: { score_5mini: mini.score, score_flash: flash.score, score_pro: pro.score },
-                    reason: pro.reason,
+                    reason: '',
                 };
             }
         }
@@ -159,6 +158,6 @@ export async function scoringCascade(candidate) {
         label,
         action: 'suggest',
         scores: { score_5mini: mini.score, score_flash: flash.score },
-        reason: combinedReason,
+        reason: '',
     };
 }

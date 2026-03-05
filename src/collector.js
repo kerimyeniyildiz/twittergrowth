@@ -82,7 +82,7 @@ export async function collectAccount(username) {
         return [];
     }
 
-    const tweets = data.timeline || [];
+    const tweets = (data.timeline || []).slice(0, config.maxTweetsPerPoll);
     const newCandidates = [];
 
     for (const tweet of tweets) {

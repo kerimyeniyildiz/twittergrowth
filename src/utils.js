@@ -89,7 +89,6 @@ export function formatCandidate(c) {
 ${c.label ? `Etiket: <b>${c.label}</b>` : ''}
 ${scores.length ? `Skorlar: ${scores.join(' | ')}` : ''}
 ${c.similar_count_10m > 0 ? `📊 Benzer: ${c.similar_count_10m} hesap` : ''}
-${c.score_reason ? `💡 ${c.score_reason}` : ''}
 
 ${c.rewritten_text || c.text}${mediaLine}`;
 }
